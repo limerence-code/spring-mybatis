@@ -67,10 +67,21 @@ import org.springframework.stereotype.Component;
 class MapperScanTest {
   private AnnotationConfigApplicationContext applicationContext;
 
+  /**
+   * 创建SqlSessionFactory BeanDefinition
+   */
+  private void setupSqlSessionFactory() {
+    GenericBeanDefinition definition = new GenericBeanDefinition();
+    definition.setBeanClass(SqlSessionFactoryBean.class);
+    definition.getPropertyValues().add("dataSource", new MockDataSource());
+    applicationContext.registerBeanDefinition("sqlSessionFactory", definition);
+  }
+
+
   @BeforeEach
   void setupContext() {
     applicationContext = new AnnotationConfigApplicationContext();
-    applicationContext.getBeanFactory().registerScope("thread", new SimpleThreadScope());
+//    applicationContext.getBeanFactory().registerScope("thread", new SimpleThreadScope());
 
     setupSqlSessionFactory();
 
@@ -115,8 +126,8 @@ class MapperScanTest {
     applicationContext.getBean("annotatedMapper");
 
     assertThat(applicationContext
-        .getBeanDefinition(applicationContext.getBeanNamesForType(MapperScannerConfigurer.class)[0]).getRole())
-            .isEqualTo(BeanDefinition.ROLE_INFRASTRUCTURE);
+      .getBeanDefinition(applicationContext.getBeanNamesForType(MapperScannerConfigurer.class)[0]).getRole())
+      .isEqualTo(BeanDefinition.ROLE_INFRASTRUCTURE);
   }
 
   @Test
@@ -228,14 +239,7 @@ class MapperScanTest {
     startContext();
 
     assertThat(applicationContext.getBean("mapperInterface").getClass())
-        .as("scanner should not overwrite existing bean definition").isSameAs(Object.class);
-  }
-
-  private void setupSqlSessionFactory() {
-    GenericBeanDefinition definition = new GenericBeanDefinition();
-    definition.setBeanClass(SqlSessionFactoryBean.class);
-    definition.getPropertyValues().add("dataSource", new MockDataSource());
-    applicationContext.registerBeanDefinition("sqlSessionFactory", definition);
+      .as("scanner should not overwrite existing bean definition").isSameAs(Object.class);
   }
 
   private void assertBeanNotLoaded(String name) {
@@ -363,7 +367,7 @@ class MapperScanTest {
     startContext();
 
     List<String> scopedProxyTargetBeans = Stream.of(applicationContext.getBeanDefinitionNames())
-        .filter(x -> x.startsWith("scopedTarget")).collect(Collectors.toList());
+      .filter(x -> x.startsWith("scopedTarget")).collect(Collectors.toList());
     assertThat(scopedProxyTargetBeans).hasSize(1).contains("scopedTarget.ds1Mapper");
 
     for (String scopedProxyTargetBean : scopedProxyTargetBeans) {
@@ -442,8 +446,8 @@ class MapperScanTest {
   }
 
   @Configuration
-  @MapperScans({ @MapperScan(basePackages = "org.mybatis.spring.annotation.mapper.ds1"),
-      @MapperScan(basePackages = "org.mybatis.spring.annotation.mapper.ds2") })
+  @MapperScans({@MapperScan(basePackages = "org.mybatis.spring.annotation.mapper.ds1"),
+    @MapperScan(basePackages = "org.mybatis.spring.annotation.mapper.ds2")})
   public static class AppConfigWithMapperScans {
   }
 
@@ -465,8 +469,8 @@ class MapperScanTest {
 
   }
 
-  @MapperScan(basePackages = { "org.mybatis.spring.annotation.mapper.ds1",
-      "org.mybatis.spring.annotation.mapper.ds2" }, defaultScope = "${mybatis.default-scope:thread}")
+  @MapperScan(basePackages = {"org.mybatis.spring.annotation.mapper.ds1",
+    "org.mybatis.spring.annotation.mapper.ds2"}, defaultScope = "${mybatis.default-scope:thread}")
   public static class ScopedProxy {
 
   }
